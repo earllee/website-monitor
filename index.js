@@ -30,7 +30,8 @@ const monitor = async () => {
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage'
+      '--disable-dev-shm-usage',
+      '--single-process'
     ]});
 
   const checkPage = async (website) => {
@@ -75,13 +76,13 @@ const monitor = async () => {
 
   };
 
-  websites.forEach(function (website) {
-    checkPage(website);
+  websites.forEach(async function (website) {
+    await checkPage(website);
   });
 
   setInterval(function () {
-    websites.forEach(function (website) {
-      checkPage(website);
+    websites.forEach(async function (website) {
+      await checkPage(website);
     });
 
     console.log();
