@@ -28,7 +28,7 @@ fs.createReadStream('websites.csv')
 const monitor = async () => {
   const browser = await puppeteer.launch({
     args: [
-      '--no-sandbox'
+      '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage'
     ]});
