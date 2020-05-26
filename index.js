@@ -26,7 +26,12 @@ fs.createReadStream('websites.csv')
   });
 
 const monitor = async () => {
-  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({
+    args: [
+      '--no-sandbox'
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage'
+    ]});
 
   const checkPage = async (website) => {
     const name = website.name;
@@ -35,6 +40,7 @@ const monitor = async () => {
     const textToMatch = website.text;
 
     const page = await browser.newPage();
+    // TODO: Add crash handling
     await page.goto(url);
 
     const target = await page.$(selector);
