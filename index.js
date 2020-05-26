@@ -26,7 +26,7 @@ fs.createReadStream('websites.csv')
   });
 
 const monitor = async () => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
 
   const checkPage = async (website) => {
     const name = website.name;
