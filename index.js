@@ -11,6 +11,9 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const toEmail = process.env.TO_EMAIL;
 const fromEmail = process.env.FROM_EMAIL;
 
+// Twilio config
+const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
 // Time config
 const minutes = 1;
 const msInMinute = 60000;
@@ -41,9 +44,13 @@ const monitor = async () => {
     const textToMatch = website.text;
 
     try {
+      // TODO: Gracefully handle page crash
       const page = await browser.newPage();
+
+      // TODO: Gracefully handle page crash
       await page.goto(url)
 
+      // TODO: Gracefully handle failed selector
       const target = await page.$(selector);
       const targetText = target ? await (await target.getProperty('innerHTML')).jsonValue() : null;
 
@@ -65,6 +72,14 @@ const monitor = async () => {
         };
 
         sgMail.send(msg).catch(function (e) { console.log(e.response.body.errors) });
+
+        const txt = {
+          body: `In-Stock: ${name}, ${url}`,
+          from: process.env.FROM_PHONE,
+          to: process.env.TO_PHONE
+        };
+
+        twilio.messages.create(txt).catch(e => { console.log(e) });
 
         arrayRemove(websites, (website) => website.url === url);
       }
