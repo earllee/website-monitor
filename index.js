@@ -39,9 +39,8 @@ const monitor = async () => {
     const selector = website.selector;
     const textToMatch = website.text;
 
-    const page = await browser.newPage();
-    // TODO: Add crash handling
     try {
+      const page = await browser.newPage();
       await page.goto(url)
 
       const target = await page.$(selector);
@@ -69,6 +68,7 @@ const monitor = async () => {
         arrayRemove(websites, (website) => website.url === url);
       }
     } catch (e) {
+        if (page) page.close();
         console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Error: ${e}`);
 
     }
