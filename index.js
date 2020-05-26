@@ -41,31 +41,36 @@ const monitor = async () => {
 
     const page = await browser.newPage();
     // TODO: Add crash handling
-    await page.goto(url);
+    try {
+      await page.goto(url)
 
-    const target = await page.$(selector);
-    const targetText = target ? await (await target.getProperty('innerHTML')).jsonValue() : null;
+      const target = await page.$(selector);
+      const targetText = target ? await (await target.getProperty('innerHTML')).jsonValue() : null;
 
-    page.close();
+      page.close();
 
-    if (targetText === null) {
-      console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Parsing error.`);
-    } else if (textToMatch !== targetText) {
-      console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Out of stock.`);
-    } else {
-      console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> In stock! Buy at ${url}.`);
+      if (targetText === null) {
+        console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Parsing error.`);
+      } else if (textToMatch !== targetText) {
+        console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Out of stock.`);
+      } else {
+        console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> In stock! Buy at ${url}.`);
 
-      const msg = {
-        to: toEmail,
-        from: fromEmail,
-        subject: `In-Stock: ${name}`,
-        text: 'url',
-        html: `<a href=${url}><strong>Click here to buy!</strong></a>`,
-      };
+        const msg = {
+          to: toEmail,
+          from: fromEmail,
+          subject: `In-Stock: ${name}`,
+          text: 'url',
+          html: `<a href=${url}><strong>Click here to buy!</strong></a>`,
+        };
 
-      sgMail.send(msg).catch(function (e) { console.log(e.response.body.errors) });
+        sgMail.send(msg).catch(function (e) { console.log(e.response.body.errors) });
 
-      arrayRemove(websites, (website) => website.url === url);
+        arrayRemove(websites, (website) => website.url === url);
+      }
+    } catch (e) {
+        console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Error: ${e}`);
+
     }
 
   };
