@@ -28,14 +28,17 @@ fs.createReadStream('websites.csv')
     console.log(websites);
   });
 
+const logItem = (item, msg) => console.log(`[${dayjs().format('MMM D h:mma')}] ${item}\n  -> ${msg}`);
+
 const monitor = async () => {
   const browser = await puppeteer.launch({
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      '--single-process'
-    ]});
+      '--single-process',
+      '--disable-crash-reporter'
+    ], headless: true });
 
   const checkPage = async (website) => {
     const name = website.name;
@@ -43,50 +46,49 @@ const monitor = async () => {
     const selector = website.selector;
     const textToMatch = website.text;
 
-    try {
-      // TODO: Gracefully handle page crash
-      const page = await browser.newPage();
+    const page = await browser.newPage().catch(e => logItem(name, e));
 
-      // TODO: Gracefully handle page crash
-      await page.goto(url)
+    await page.goto(url).catch(async e => {
+      await page.close();
+      logItem(name, e);
+    });
 
-      // TODO: Gracefully handle failed selector
-      const target = await page.$(selector);
-      const targetText = target ? await (await target.getProperty('innerHTML')).jsonValue() : null;
+    if (page.isClosed())
+      return;
 
-      page.close();
+    const target = await page.$(selector);
+    const targetText = target ? await (await target.getProperty('textContent')).jsonValue() : null;
 
-      if (targetText === null) {
-        console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Parsing error.`);
-      } else if (textToMatch !== targetText) {
-        console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Out of stock.`);
-      } else {
-        console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> In stock! Buy at ${url}.`);
+    page.close();
 
-        const msg = {
-          to: toEmail,
-          from: fromEmail,
-          subject: `In-Stock: ${name}`,
-          text: 'url',
-          html: `<a href=${url}><strong>Click here to buy!</strong></a>`,
-        };
+    if (targetText === null) {
+      logItem(name, 'ERROR: Failed to parse text.');
+    } else if (textToMatch !== targetText) {
+      logItem(name, 'Out of stock.');
+    } else {
+      logItem(name, `In stock! Buy at ${url}.`);
 
-        sgMail.send(msg).catch(function (e) { console.log(e.response.body.errors) });
+      const msg = {
+        to: toEmail,
+        from: fromEmail,
+        subject: `In-Stock: ${name}`,
+        text: 'url',
+        html: `<a href=${url}><strong>Click here to buy!</strong></a>`,
+      };
 
-        const txt = {
-          body: `In-Stock: ${name}, ${url}`,
-          from: process.env.FROM_PHONE,
-          to: process.env.TO_PHONE
-        };
+      sgMail.send(msg).catch(e => {
+        logItem(name, `ERROR: ${e.response.body.error}`);
+      });
 
-        twilio.messages.create(txt).catch(e => { console.log(e) });
+      const txt = {
+        body: `In-Stock: ${name}, ${url}`,
+        from: process.env.FROM_PHONE,
+        to: process.env.TO_PHONE
+      };
 
-        arrayRemove(websites, (website) => website.url === url);
-      }
-    } catch (e) {
-        if (page) page.close();
-        console.log(`[${dayjs().format('MMM D h:mma')}] ${name}\n  -> Error: ${e}`);
+      twilio.messages.create(txt).catch(e => { console.log(e) });
 
+      arrayRemove(websites, (website) => website.url === url);
     }
 
   };
@@ -100,7 +102,6 @@ const monitor = async () => {
       await checkPage(website);
     });
 
-    console.log();
   }, checkInterval);
 
 };
