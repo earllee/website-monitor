@@ -2,3 +2,4 @@ name,url,selector,text
 Elgato Cam Link 4K,https://www.bestbuy.com/site/elgato-cam-link-4k-black/6316580.p,button.add-to-cart-button,Add to Cart
 Elgato Cam Link 4K,https://www.newegg.com/elgato-cam-link-4k/p/N82E16815131041,span#landingpage-stock,In stock.
 Elgato Cam Link 4K,https://www.gamestop.com/video-games/pc/accessories/networking/products/elgato-cam-link-4k/10175042.html,button.add-to-cart,Add to Cart
+Monster Lite Matador (dip rack),https://www.roguefitness.com/rogue-monster-lite-matador,.btn-add-to-cart,Add to Cart
