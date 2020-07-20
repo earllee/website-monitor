@@ -13,7 +13,7 @@
     "csv-parser": "^2.3.2",
     "dayjs": "^1.8.27",
     "dotenv": "^8.2.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "puppeteer": "^3.1.0",
     "twilio": "^3.43.1"
   }
